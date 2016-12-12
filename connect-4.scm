@@ -26,4 +26,14 @@
 (define board init-board-matrix)
 
 
+(define drop-chip
+  (lambda (col player)
+    (define check-lowest-row
+      (lambda (row)
+        (cond
+          ((< row 0) (display "invalid move"))
+          ((null? (vector-ref (vector-ref board row) col))
+           (vector-set! (vector-ref board row) col player))
+          (else (check-lowest-row (- row 1))))))
+    (check-lowest-row (- num-rows 1))))
 
