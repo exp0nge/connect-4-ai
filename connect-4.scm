@@ -6,11 +6,12 @@
 
 (define num-cols 7)
 
-(define generate-list
-  (lambda (size)
+(define init-vector-rows
+  (lambda (rows count)
     (cond
-      ((= size 0) (quote ()))
-      (else (cons (quote ()) (generate-list (- size 1)))))))
+      ((= count num-rows) rows)
+      (else (vector-set! rows count (make-vector num-cols '()))
+            (init-vector-rows rows (+ count 1)))))) 
 
 (define init-board-matrix
   ;; Each row-list contains that level's columns
@@ -20,12 +21,9 @@
   ; (() () () () () () ())
   ; (() () () () () () ())
   ; (() () () () () () ()))
-  (map
-   (lambda (row) (append row (generate-list num-cols)))
-   (generate-list num-rows)))
+  (init-vector-rows (make-vector num-rows) 0))
 
-
-
+(define board init-board-matrix)
 
 
 
