@@ -52,5 +52,15 @@
            (newline)
            (iter (+ row 1))))))
     (iter 0)))
-        
 
+(define get-col
+  (lambda (col)
+    (let ((requested-col (make-vector num-rows))
+          (fill-col 0))
+      (vector-map
+       (lambda (row)
+         (newline)
+         (vector-set! requested-col fill-col (vector-ref row col))
+         (set! fill-col (+ fill-col 1)))
+       board)
+      requested-col)))
