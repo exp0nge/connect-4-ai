@@ -51,7 +51,8 @@
                        (vector-ref board row))
            (newline)
            (iter (+ row 1))))))
-    (iter 0)))
+    (iter 0)
+    (newline)))
 
 (define get-col
   (lambda (col)
@@ -59,8 +60,32 @@
           (fill-col 0))
       (vector-map
        (lambda (row)
-         (newline)
          (vector-set! requested-col fill-col (vector-ref row col))
          (set! fill-col (+ fill-col 1)))
        board)
       requested-col)))
+
+(define count-max-continuous-player
+  (lambda (vec player-to-check)
+    (let ((max-count 0)
+          (count 0))
+      (vector-map
+       (lambda (player) (if (equal? player player-to-check)
+                            (cond
+                              ((> (+ count 1) max-count)
+                                (set! count (+ count 1))
+                                (set! max-count count))
+                              (else (set! count (+ count 1))))
+                            (set! count 0)))
+       vec)
+      max-count)))
+
+(drop-chip 1 'X)
+(drop-chip 1 'O)
+(drop-chip 1 'O)
+(drop-chip 1 'O)
+(drop-chip 1 'X)
+(drop-chip 1 'X)
+(print-board)
+(count-max-continuous-player (get-col 1) 'X)
+(count-max-continuous-player (get-col 1) 'O)
