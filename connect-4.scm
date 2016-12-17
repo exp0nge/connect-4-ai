@@ -36,7 +36,11 @@
           ((null? (vector-ref (vector-ref board row) col))
            (vector-set! (vector-ref board row) col player))
           (else (check-lowest-row (- row 1))))))
-    (check-lowest-row (- num-rows 1))))
+    (check-lowest-row (- num-rows 1))
+    (print-board)
+    (cond ((win? 'X) (display "Player X Wins"))
+          ((win? 'O) (display "Player O Wins"))
+          (else (newline)))))
 
 (define print-board
   (lambda ()
@@ -80,12 +84,36 @@
        vec)
       max-count)))
 
-(drop-chip 1 'X)
+(define win?
+  (lambda (player)
+    (cond ((column-win? player) #t)
+          ;((row-win? player) #t)
+          ;((diagonal-win? player) #t)
+          (else #f))))
+
+(define column-win?
+  (lambda (player)
+    (define counter
+      (lambda (count)
+        (cond ((< count 0) #f)
+              ((>= (count-max-continuous-player (get-col count) player) 4) #t)
+              (else (counter (- count 1))))))
+    (counter (- num-cols 1))))
+
+
+
 (drop-chip 1 'O)
 (drop-chip 1 'O)
 (drop-chip 1 'O)
-(drop-chip 1 'X)
-(drop-chip 1 'X)
-(print-board)
-(count-max-continuous-player (get-col 1) 'X)
-(count-max-continuous-player (get-col 1) 'O)
+(drop-chip 1 'O)
+
+
+;(drop-chip 1 'X)
+;(drop-chip 1 'O)
+;(drop-chip 1 'O)
+;(drop-chip 1 'O)
+;(drop-chip 1 'X)
+;(drop-chip 1 'X)
+;(print-board)
+;(count-max-continuous-player (get-col 1) 'X)
+;(count-max-continuous-player (get-col 1) 'O)
