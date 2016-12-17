@@ -28,22 +28,22 @@
 (define board init-board-matrix)
 
 (define drop-chip
-  (lambda (col player)
+  (lambda (board col player)
     (define check-lowest-row
       (lambda (row)
         (cond
-          ((< row 0) (display "invalid move") (newline))
+          ((< row 0) #f)
           ((null? (vector-ref (vector-ref board row) col))
-           (vector-set! (vector-ref board row) col player))
-          (else (check-lowest-row (- row 1))))))
-    (check-lowest-row (- num-rows 1))
-    (print-board)
-    (cond ((win? 'X) (display "Player X Wins"))
-          ((win? 'O) (display "Player O Wins"))
-          (else (newline)))))
+           (vector-set! (vector-ref board row) col player) #t)
+          (else (and (check-lowest-row (- row 1)) #t)))))
+    (check-lowest-row (- num-rows 1))))
+    ;(print-board board)))
+    ;(cond ((win? board 'X) (display "Player X Wins"))
+          ;((win? board 'O) (display "Player O Wins")))
+          ;(newline)))
 
 (define print-board
-  (lambda ()
+  (lambda (board)
     (define iter
       (lambda (row)
         (cond
@@ -59,7 +59,7 @@
     (newline)))
 
 (define get-col
-  (lambda (col)
+  (lambda (board col)
     (let ((requested-col (make-vector num-rows))
           (fill-col 0))
       (vector-map
@@ -70,15 +70,15 @@
       requested-col)))
 
 (define get-row
-  (lambda (row)
+  (lambda (board row)
     (vector-ref board row)))
 
 (define get-slot
-  (lambda (row col)
-    (vector-ref (get-row row) col)))
+  (lambda (board row col)
+    (vector-ref (get-row board row) col)))
 
 (define count-max-continuous-player
-  (lambda (vec player-to-check)
+  (lambda (board vec player-to-check)
     (let ((max-count 0)
           (count 0))
       (vector-map
@@ -94,36 +94,124 @@
 
 
 (define win?
-  (lambda (player)
-    (cond ((column-win? player) #t)
-          ;((row-win? player) #t)
-          ;((diagonal-win? player) #t)
+  (lambda (board player)
+    (cond ((column-win? board player) #t)
+          ((row-win? board player) #t)
+          ((diagonal-win? board player) #t)
           (else #f))))
 
 
 (define column-win?
-  (lambda (player)
+  (lambda (board player)
     (define counter
       (lambda (count)
         (cond ((< count 0) #f)
-              ((>= (count-max-continuous-player (get-col count) player) 4) #t)
+              ((>= (count-max-continuous-player board (get-col board count) player) 4) #t)
               (else (counter (- count 1))))))
     (counter (- num-cols 1))))
 
+(define row-win?
+  (lambda (board player)
+    (define counter
+      (lambda (count)
+        (cond ((< count 0) #f)
+              ((>= (count-max-continuous-player board (get-row board count) player) 4) #t)
+              (else (counter (- count 1))))))
+    (counter (- num-rows 1))))
+
+(define diagonal-win?
+  (lambda (board player)
+    (let ((right-to-left (vector-ref (get-diagonal board) 0))
+          (left-to-right (vector-ref (get-diagonal board) 1)))
+      (define counter
+        (lambda (count)
+          (cond ((< count 0) #f)
+                ((>= (count-max-continuous-player board (vector-ref left-to-right count) player) 4) #t)
+                ((>= (count-max-continuous-player board (vector-ref right-to-left count) player) 4) #t)
+                (else (counter (- count 1))))))
+      (counter (- (vector-length left-to-right) 1)))))
+
+(define get-diagonal
+  (lambda (board)
+    (vector (get-left-to-right-diagonals board)
+            (get-right-to-left-diagonals board))))
 
 
-(drop-chip 1 'O)
-(drop-chip 1 'O)
-(drop-chip 1 'O)
-(drop-chip 1 'O)
+(define get-right-to-left-diagonals
+  (lambda (board)
+    (let ((start-row 0)
+          (start-col (- num-cols 4))
+          (v (vector)))
+      (define diagonal-iteration
+        (lambda (row col)
+          (cond ((< col 0) (vector))
+                ((>= row num-rows) (vector))
+                (else (vector-append v (vector (get-slot board row col)) (diagonal-iteration (+ row 1) (- col 1) ))))))
+      (define iter
+        (lambda (row col)
+          (cond ((>= col num-cols) (iter (+ row 1) (- col 1)))
+                ((> row (- num-rows 4)) (vector))
+                (else (vector-append (vector (diagonal-iteration row col)) (iter row (+ col 1)))))))
+      (iter start-row start-col))))
+
+(define get-left-to-right-diagonals
+  (lambda (board)
+    (let ((start-row 0)
+          (start-col (- num-cols 4))
+          (v (vector)))
+      (define diagonal-iteration
+        (lambda (row col)
+          (cond ((>= col num-cols) (vector))
+                ((>= row num-rows) (vector))
+                (else (vector-append v (vector (get-slot board row col)) (diagonal-iteration (+ row 1) (+ col 1) ))))))
+      (define iter
+        (lambda (row col)
+          (cond ((< col 0) (iter (+ row 1) 0))
+                ((> row (- num-rows 4)) (vector))
+                (else (vector-append (vector (diagonal-iteration row col)) (iter row (- col 1)))))))
+      (iter start-row start-col))))
 
 
-;(drop-chip 1 'X)
-;(drop-chip 1 'O)
-;(drop-chip 1 'O)
-;(drop-chip 1 'O)
-;(drop-chip 1 'X)
-;(drop-chip 1 'X)
-;(print-board)
-;(count-max-continuous-player (get-col 1) 'X)
-;(count-max-continuous-player (get-col 1) 'O)
+
+;; Check Row Win
+;(drop-chip board 0 'O)
+;(drop-chip board 1 'O)
+;(drop-chip board 2 'O)
+;(drop-chip board 3 'O)
+;(print-board board)
+;(win? board 'X)
+;(win? board 'O)
+
+;; Check Column Win
+;(drop-chip board 6 'X)
+;(drop-chip board 6 'X)
+;(drop-chip board 6 'X)
+;(drop-chip board 6 'X)
+;(print-board board)
+;(win? board 'X)
+;(win? board 'O)
+
+(drop-chip board 0 'X)
+(drop-chip board 1 'O)
+(drop-chip board 1 'X)
+(drop-chip board 2 'O)
+(drop-chip board 2 'O)
+(drop-chip board 2 'X)
+(drop-chip board 3 'O)
+(drop-chip board 3 'X)
+(drop-chip board 3 'O)
+(drop-chip board 3 'X)
+(print-board board)
+(win? board 'X)
+(win? board 'O)
+
+
+;(drop-chip board 1 'X)
+;(drop-chip board 1 'O)
+;(drop-chip board 1 'O)
+;(drop-chip board 1 'O)
+;(drop-chip board 1 'X)
+;(drop-chip board 1 'X)
+;(print-board board)
+;(count-max-continuous-player board (get-col board 1) 'X)
+;(count-max-continuous-player board (get-col board 1) 'O)
