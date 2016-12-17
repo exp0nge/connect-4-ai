@@ -69,12 +69,20 @@
        board)
       requested-col)))
 
+(define get-row
+  (lambda (row)
+    (vector-ref board row)))
+
+(define get-slot
+  (lambda (row col)
+    (vector-ref (get-row row) col)))
+
 (define count-max-continuous-player
   (lambda (vec player-to-check)
     (let ((max-count 0)
           (count 0))
       (vector-map
-       (lambda (player) (if (equal? player player-to-check)
+       (lambda (player) (if (equal? player player-to-check) ; player symbol are equal
                             (cond
                               ((> (+ count 1) max-count)
                                 (set! count (+ count 1))
@@ -84,12 +92,14 @@
        vec)
       max-count)))
 
+
 (define win?
   (lambda (player)
     (cond ((column-win? player) #t)
           ;((row-win? player) #t)
           ;((diagonal-win? player) #t)
           (else #f))))
+
 
 (define column-win?
   (lambda (player)
