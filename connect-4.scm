@@ -65,12 +65,16 @@
        board)
       requested-col)))
 
+(define get-row
+  (lambda (row)
+    (vector-ref board row)))
+
 (define count-max-continuous-player
   (lambda (vec player-to-check)
     (let ((max-count 0)
           (count 0))
       (vector-map
-       (lambda (player) (if (equal? player player-to-check)
+       (lambda (player) (if (equal? player player-to-check) ; player symbol are equal
                             (cond
                               ((> (+ count 1) max-count)
                                 (set! count (+ count 1))
@@ -80,12 +84,43 @@
        vec)
       max-count)))
 
+(define get-slot
+  (lambda (row col)
+    (vector-ref (get-row row) col)))
+
+(define get-diagnols
+  (lambda ()
+    (define iter-right-left-diagnol
+      (lambda (row col)
+        (cond
+          ((or (>= row num-rows)
+               (>= col num-cols)
+               (< row 0)
+               (< col 0)) (quote ()))
+          (else (cons (get-slot row col) (iter-right-left-diagnol (+ row 1) (- col 1)))))))
+    (define iter-cols
+      (lambda (row col l)
+        (cond
+          ((= col num-cols) l)
+          (else (list col (iter-right-left-diagnol row col) (list (iter-cols row (+ col 1) l)))))))
+    (iter-cols 0 0 '())))
+    
+                  
+
 (drop-chip 1 'X)
 (drop-chip 1 'O)
 (drop-chip 1 'O)
 (drop-chip 1 'O)
 (drop-chip 1 'X)
 (drop-chip 1 'X)
-(print-board)
 (count-max-continuous-player (get-col 1) 'X)
 (count-max-continuous-player (get-col 1) 'O)
+(drop-chip 0 'X)
+(count-max-continuous-player (get-row 5) 'X)
+
+(drop-chip 2 'X)
+(drop-chip 2 'X)
+
+
+(print-board)
+(get-diagnols)
