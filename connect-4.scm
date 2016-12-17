@@ -36,7 +36,11 @@
           ((null? (vector-ref (vector-ref board row) col))
            (vector-set! (vector-ref board row) col player))
           (else (check-lowest-row (- row 1))))))
-    (check-lowest-row (- num-rows 1))))
+    (check-lowest-row (- num-rows 1))
+    (print-board)
+    (cond ((win? 'X) (display "Player X Wins"))
+          ((win? 'O) (display "Player O Wins"))
+          (else (newline)))))
 
 (define print-board
   (lambda ()
@@ -69,6 +73,10 @@
   (lambda (row)
     (vector-ref board row)))
 
+(define get-slot
+  (lambda (row col)
+    (vector-ref (get-row row) col)))
+
 (define count-max-continuous-player
   (lambda (vec player-to-check)
     (let ((max-count 0)
@@ -84,43 +92,38 @@
        vec)
       max-count)))
 
-(define get-slot
-  (lambda (row col)
-    (vector-ref (get-row row) col)))
 
-(define get-diagnols
-  (lambda ()
-    (define iter-right-left-diagnol
-      (lambda (row col)
-        (cond
-          ((or (>= row num-rows)
-               (>= col num-cols)
-               (< row 0)
-               (< col 0)) (quote ()))
-          (else (cons (get-slot row col) (iter-right-left-diagnol (+ row 1) (- col 1)))))))
-    (define iter-cols
-      (lambda (row col l)
-        (cond
-          ((= col num-cols) l)
-          (else (list col (iter-right-left-diagnol row col) (list (iter-cols row (+ col 1) l)))))))
-    (iter-cols 0 0 '())))
-    
-                  
+(define win?
+  (lambda (player)
+    (cond ((column-win? player) #t)
+          ;((row-win? player) #t)
+          ;((diagonal-win? player) #t)
+          (else #f))))
 
-(drop-chip 1 'X)
+
+(define column-win?
+  (lambda (player)
+    (define counter
+      (lambda (count)
+        (cond ((< count 0) #f)
+              ((>= (count-max-continuous-player (get-col count) player) 4) #t)
+              (else (counter (- count 1))))))
+    (counter (- num-cols 1))))
+
+
+
 (drop-chip 1 'O)
 (drop-chip 1 'O)
 (drop-chip 1 'O)
-(drop-chip 1 'X)
-(drop-chip 1 'X)
-(count-max-continuous-player (get-col 1) 'X)
-(count-max-continuous-player (get-col 1) 'O)
-(drop-chip 0 'X)
-(count-max-continuous-player (get-row 5) 'X)
-
-(drop-chip 2 'X)
-(drop-chip 2 'X)
+(drop-chip 1 'O)
 
 
-(print-board)
-(get-diagnols)
+;(drop-chip 1 'X)
+;(drop-chip 1 'O)
+;(drop-chip 1 'O)
+;(drop-chip 1 'O)
+;(drop-chip 1 'X)
+;(drop-chip 1 'X)
+;(print-board)
+;(count-max-continuous-player (get-col 1) 'X)
+;(count-max-continuous-player (get-col 1) 'O)
