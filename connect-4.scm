@@ -39,8 +39,8 @@
     (check-lowest-row (- num-rows 1))
     (print-board)
     (cond ((win? 'X) (display "Player X Wins"))
-          ((win? 'O) (display "Player O Wins"))
-          (else (newline)))))
+          ((win? 'O) (display "Player O Wins")))
+          (newline)))
 
 (define print-board
   (lambda ()
@@ -69,12 +69,20 @@
        board)
       requested-col)))
 
+(define get-row
+  (lambda (row)
+    (vector-ref board row)))
+
+(define get-slot
+  (lambda (row col)
+    (vector-ref (get-row row) col)))
+
 (define count-max-continuous-player
   (lambda (vec player-to-check)
     (let ((max-count 0)
           (count 0))
       (vector-map
-       (lambda (player) (if (equal? player player-to-check)
+       (lambda (player) (if (equal? player player-to-check) ; player symbol are equal
                             (cond
                               ((> (+ count 1) max-count)
                                 (set! count (+ count 1))
@@ -84,12 +92,14 @@
        vec)
       max-count)))
 
+
 (define win?
   (lambda (player)
     (cond ((column-win? player) #t)
-          ;((row-win? player) #t)
+          ((row-win? player) #t)
           ;((diagonal-win? player) #t)
           (else #f))))
+
 
 (define column-win?
   (lambda (player)
@@ -100,12 +110,29 @@
               (else (counter (- count 1))))))
     (counter (- num-cols 1))))
 
+(define row-win?
+  (lambda (player)
+    (define counter
+      (lambda (count)
+        (cond ((< count 0) #f)
+              ((>= (count-max-continuous-player (get-row count) player) 4) #t)
+              (else (counter (- count 1))))))
+    (counter (- num-rows 1))))
+
+;(define get-diagonal
 
 
+;; Check Row Win
+(drop-chip 0 'O)
 (drop-chip 1 'O)
-(drop-chip 1 'O)
-(drop-chip 1 'O)
-(drop-chip 1 'O)
+(drop-chip 2 'O)
+(drop-chip 3 'O)
+
+;; Check Column Win
+(drop-chip 6 'X)
+(drop-chip 6 'X)
+(drop-chip 6 'X)
+(drop-chip 6 'X)
 
 
 ;(drop-chip 1 'X)
