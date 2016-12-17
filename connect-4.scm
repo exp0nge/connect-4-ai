@@ -97,7 +97,7 @@
   (lambda (player)
     (cond ((column-win? player) #t)
           ((row-win? player) #t)
-          ;((diagonal-win? player) #t)
+          ((diagonal-win? player) #t)
           (else #f))))
 
 
@@ -119,10 +119,22 @@
               (else (counter (- count 1))))))
     (counter (- num-rows 1))))
 
+(define diagonal-win?
+  (lambda (player)
+    (let ((right-to-left (vector-ref (get-diagonal) 0))
+          (left-to-right (vector-ref (get-diagonal) 1)))
+      (define counter
+        (lambda (count)
+          (cond ((< count 0) #f)
+                ((>= (count-max-continuous-player (vector-ref left-to-right count) player) 4) #t)
+                ((>= (count-max-continuous-player (vector-ref right-to-left count) player) 4) #t)
+                (else (counter (- count 1))))))
+      (counter (- (vector-length left-to-right) 1)))))
+
 (define get-diagonal
   (lambda ()
-    (vector (get-right-to-left-diagonals)
-            (get-left-to-right-diagonals))))
+    (vector (get-left-to-right-diagonals)
+            (get-right-to-left-diagonals))))
 
 
 (define get-right-to-left-diagonals
@@ -174,16 +186,27 @@
 
 
 ;; Check Row Win
-(drop-chip 0 'O)
-(drop-chip 1 'O)
-(drop-chip 2 'O)
-(drop-chip 3 'O)
+;(drop-chip 0 'O)
+;(drop-chip 1 'O)
+;(drop-chip 2 'O)
+;(drop-chip 3 'O)
 
 ;; Check Column Win
-(drop-chip 6 'X)
-(drop-chip 6 'X)
-(drop-chip 6 'X)
-(drop-chip 6 'X)
+;(drop-chip 6 'X)
+;(drop-chip 6 'X)
+;(drop-chip 6 'X)
+;(drop-chip 6 'X)
+
+(drop-chip 0 'X)
+(drop-chip 1 'O)
+(drop-chip 1 'X)
+(drop-chip 2 'O)
+(drop-chip 2 'O)
+(drop-chip 2 'X)
+(drop-chip 3 'O)
+(drop-chip 3 'X)
+(drop-chip 3 'O)
+(drop-chip 3 'X)
 
 
 ;(drop-chip 1 'X)
