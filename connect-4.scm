@@ -25,7 +25,15 @@
   ; #(() () () () () () ()))
   (init-vector-rows (make-vector num-rows) 0))
 
-(define board init-board-matrix)
+(define valid-move?
+  (lambda (board col player)
+    (define check-lowest-row
+      (lambda (row)
+        (cond
+          ((< row 0) #f)
+          ((null? (vector-ref (vector-ref board row) col)) #t)
+          (else (check-lowest-row (- row 1))))))
+    (check-lowest-row (- num-rows 1))))
 
 (define drop-chip
   (lambda (board col player)
@@ -33,14 +41,10 @@
       (lambda (row)
         (cond
           ((< row 0) #f)
-          ((null? (vector-ref (vector-ref board row) col))
+          ((null? (get-slot board row col))
            (vector-set! (vector-ref board row) col player) #t)
           (else (and (check-lowest-row (- row 1)) #t)))))
     (check-lowest-row (- num-rows 1))))
-    ;(print-board board)))
-    ;(cond ((win? board 'X) (display "Player X Wins"))
-          ;((win? board 'O) (display "Player O Wins")))
-          ;(newline)))
 
 (define print-board
   (lambda (board)
@@ -172,6 +176,84 @@
       (iter start-row start-col))))
 
 
+(define INF 10000000000000000000000000000000000000000000000000000000000000000000)
+
+(define is-max?
+  (lambda (player)
+    (= player player-2)))
+
+(define opponent
+  (lambda (player)
+    (cond
+      ((equal? player player-1) player-2)
+      (else player-1))))
+
+
+(define candidate-board car)
+(define candidate-move cadr)
+
+(define make-interval
+  (lambda (min max)
+    (cond
+      ((= min max) '())
+      (else (cons min (make-interval (+ min 1) max))))))
+
+(define clone-board
+  (lambda (board)
+    (let ((clone (make-vector num-rows)))
+      (map
+       (lambda (row) (vector-set! clone row (vector-copy (vector-ref board row))))
+       (make-interval 0 num-rows))
+      clone)))
+
+(define all-possible-moves
+  (lambda (board player)
+    (define col-iter
+      (lambda (col)
+        (cond
+          ((= col num-cols) '())
+          ((valid-move? board col player) (cons col (col-iter (+ col 1))))
+          (else (col-iter (+ col 1))))))
+    (map (lambda (col)
+           (let ((board-copy (clone-board board)))
+             (drop-chip board-copy col player)
+             (list board-copy col))) ; builds (board col)
+           (col-iter 0))))
+    
+
+(define minimax
+  ; maxPlayer := #t
+  (lambda (depth board player)
+    (cond
+      ((= depth 0) (score player))
+      ((complete-board board) (score player))
+      ((is-max? player) (let ((max-score (- INF))
+                              (best-move '()))
+                          (map
+                           (lambda (candidate-board-move)
+                             (let ((candidate-score (minimax (- depth 1)
+                                                             (candidate-board candidate-board-move)
+                                                             (opponent player))))
+                               (cond
+                                 ((> candidate-score max-score)
+                                  (set! max-score candidate-score)
+                                  (set! best-move (candidate-move candidate-board-move))))))
+                           (all-possible-moves board player))
+                          best-move))
+      (else (let ((min-score INF)
+                  (best-move '()))
+              (map
+               (lambda (candidate-board-move)
+                 (let ((candidate-score (minimax (- depth 1)
+                                        (candidate-board candidate-board-move)
+                                        (opponent player))))
+                   (cond
+                     ((< candidate-score min-score)
+                      (set! min-score candidate-score)
+                      (set! best-move (candidate-move candidate-board-move))))))
+               (all-possible-moves board player))
+              best-move)))))
+    
 
 ;; Check Row Win
 ;(drop-chip board 0 'O)
@@ -191,6 +273,8 @@
 ;(win? board 'X)
 ;(win? board 'O)
 
+(define board init-board-matrix)
+
 (drop-chip board 0 'X)
 (drop-chip board 1 'O)
 (drop-chip board 1 'X)
@@ -204,7 +288,9 @@
 (print-board board)
 (win? board 'X)
 (win? board 'O)
-
+(define x (all-possible-moves board 'X))
+(print-board (caar x))
+(print-board (caadr x))
 
 ;(drop-chip board 1 'X)
 ;(drop-chip board 1 'O)
