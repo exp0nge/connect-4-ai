@@ -119,7 +119,58 @@
               (else (counter (- count 1))))))
     (counter (- num-rows 1))))
 
-;(define get-diagonal
+(define get-diagonal
+  (lambda ()
+    (vector (get-right-to-left-diagonals)
+            (get-left-to-right-diagonals))))
+
+
+(define get-right-to-left-diagonals
+  (lambda ()
+    (let ((start-row 0)
+          (start-col (- num-cols 4))
+          (v (vector)))
+      (define diagonal-iteration
+        (lambda (row col)
+          (cond ((< col 0) (vector))
+                ((>= row num-rows) (vector))
+                (else (vector-append v (vector (get-slot row col)) (diagonal-iteration (+ row 1) (- col 1) ))))))
+      (define iter
+        (lambda (row col)
+          (cond ((>= col num-cols) (iter (+ row 1) (- col 1)))
+                ((> row (- num-rows 4)) (vector))
+                (else (vector-append (vector (diagonal-iteration row col)) (iter row (+ col 1)))))))
+      (iter start-row start-col))))
+
+(define get-left-to-right-diagonals
+  (lambda ()
+    (let ((start-row 0)
+          (start-col (- num-cols 4))
+          (v (vector)))
+      (define diagonal-iteration
+        (lambda (row col)
+          (cond ((>= col num-cols) (vector))
+                ((>= row num-rows) (vector))
+                (else (vector-append v (vector (get-slot row col)) (diagonal-iteration (+ row 1) (+ col 1) ))))))
+      (define iter
+        (lambda (row col)
+          (cond ((< col 0) (iter (+ row 1) 0))
+                ((> row (- num-rows 4)) (vector))
+                (else (vector-append (vector (diagonal-iteration row col)) (iter row (- col 1)))))))
+      (iter start-row start-col))))
+                
+
+(define get-col
+  (lambda (col)
+    (let ((requested-col (make-vector num-rows))
+          (fill-col 0))
+      (vector-map
+       (lambda (row)
+         (vector-set! requested-col fill-col (vector-ref row col))
+         (set! fill-col (+ fill-col 1)))
+       board)
+      requested-col)))
+
 
 
 ;; Check Row Win
