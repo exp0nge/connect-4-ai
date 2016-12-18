@@ -97,41 +97,41 @@
       max-count)))
 
 
-(define win?
-  (lambda (board player)
-    (cond ((column-win? board player) #t)
-          ((row-win? board player) #t)
-          ((diagonal-win? board player) #t)
+(define win-n?
+  (lambda (board player n)
+    (cond ((column-win-n? board player n) #t)
+          ((row-win-n? board player n) #t)
+          ((diagonal-win-n? board player n) #t)
           (else #f))))
 
 
-(define column-win?
-  (lambda (board player)
+(define column-win-n?
+  (lambda (board player n)
     (define counter
       (lambda (count)
         (cond ((< count 0) #f)
-              ((>= (count-max-continuous-player board (get-col board count) player) 4) #t)
+              ((>= (count-max-continuous-player board (get-col board count) player) n) #t)
               (else (counter (- count 1))))))
     (counter (- num-cols 1))))
 
-(define row-win?
-  (lambda (board player)
+(define row-win-n?
+  (lambda (board player n)
     (define counter
       (lambda (count)
         (cond ((< count 0) #f)
-              ((>= (count-max-continuous-player board (get-row board count) player) 4) #t)
+              ((>= (count-max-continuous-player board (get-row board count) player) n) #t)
               (else (counter (- count 1))))))
     (counter (- num-rows 1))))
 
-(define diagonal-win?
-  (lambda (board player)
+(define diagonal-win-n?
+  (lambda (board player n)
     (let ((right-to-left (vector-ref (get-diagonal board) 0))
           (left-to-right (vector-ref (get-diagonal board) 1)))
       (define counter
         (lambda (count)
           (cond ((< count 0) #f)
-                ((>= (count-max-continuous-player board (vector-ref left-to-right count) player) 4) #t)
-                ((>= (count-max-continuous-player board (vector-ref right-to-left count) player) 4) #t)
+                ((>= (count-max-continuous-player board (vector-ref left-to-right count) player) n) #t)
+                ((>= (count-max-continuous-player board (vector-ref right-to-left count) player) n) #t)
                 (else (counter (- count 1))))))
       (counter (- (vector-length left-to-right) 1)))))
 
@@ -295,8 +295,8 @@
 (drop-chip board 3 'O)
 (drop-chip board 3 'X)
 (print-board board)
-(win? board 'X)
-(win? board 'O)
+(win-n? board 'X 3)
+(win-n? board 'O 3)
 (define x (all-possible-moves board 'X))
 (print-board (caar x))
 (print-board (caadr x))
