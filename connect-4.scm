@@ -217,7 +217,7 @@
            (let ((board-copy (clone-board board)))
              (drop-chip board-copy col player)
              (list board-copy col))) ; builds (board col)
-           (col-iter 0))))
+         (col-iter 0))))
 
 (define complete-board?
   (lambda (board)
@@ -238,40 +238,45 @@
       ((win-n? board player 3) 1000)
       ((win-n? board player 2) 300))))
 
+(define best-move '())
 
 (define minimax
   (lambda (depth board player)
     ; returns: int (column of best move)
-    (let ((best-move '()))
-      (cond
-        ((= depth 0) (score board player))
-        ((complete-board? board) (score board player))
-        ((is-max? player) (let ((max-score (- INF)))
-                            (map
-                             (lambda (candidate-board-move)
-                               (let ((candidate-score (minimax (- depth 1)
-                                                               (candidate-board candidate-board-move)
-                                                               (opponent player))))
-                                 (cond
-                                   ((> candidate-score max-score)
-                                    (set! max-score candidate-score)
-                                    (set! best-move (candidate-move candidate-board-move))))))
-                             (all-possible-moves board player))
-                            max-score))
-        (else (let ((min-score INF))
-                (map
-                 (lambda (candidate-board-move)
-                   (let ((candidate-score (minimax (- depth 1)
-                                                   (candidate-board candidate-board-move)
-                                                   (opponent player))))
-
-                     (cond
-                       ((< candidate-score min-score)
-                        (set! min-score candidate-score)
-                        (set! best-move (candidate-move candidate-board-move))))))
-                 (all-possible-moves board player))
-                min-score)))
-      (if (= depth max-depth) best-move))))
+    (cond
+      ((= depth 0) (score board player))
+      ((complete-board? board) (score board player))
+      ((is-max? player) (let ((max-score (- INF)))
+                          (display "is-max?")
+                          (map
+                           (lambda (candidate-board-move)
+                             (let ((candidate-score (minimax (- depth 1)
+                                                             (candidate-board candidate-board-move)
+                                                             (opponent player))))
+                               (cond
+                                 ((> candidate-score max-score)
+                                  (set! max-score candidate-score)
+                                  (set! best-move (candidate-move candidate-board-move))))))
+                           (all-possible-moves board player))
+                          (display "maxscore:")
+                          (display max-score)
+                          max-score))
+      (else (let ((min-score INF))
+              (map
+               (lambda (candidate-board-move)
+                 (let ((candidate-score (minimax (- depth 1)
+                                                 (candidate-board candidate-board-move)
+                                                 (opponent player))))
+                   (display "minscore depth:")
+                   (display depth)
+                   (display candidate-score)
+                     
+                   (cond
+                     ((< candidate-score min-score)
+                      (set! min-score candidate-score)
+                      (set! best-move (candidate-move candidate-board-move))))))
+               (all-possible-moves board player))
+              min-score)))))
     
 
 ;; Check Row Win
@@ -303,18 +308,18 @@
 (drop-chip board 3 'O)
 (drop-chip board 3 'X)
 (drop-chip board 3 'O)
-(drop-chip board 3 'X)
+;(drop-chip board 3 'X)
 (print-board board)
 (win-n? board 'X 3)
 (win-n? board 'O 3)
-(define x (all-possible-moves board 'X))
-(print-board (caar x))
-(print-board (caadr x))
+;(define x (all-possible-moves board 'X))
+;(print-board (caar x))
+;(print-board (caadr x))
 
-
+(print-board board)
 (define ai-player player-1)
-(define max-depth 2)
-(minimax 2 board player-1)
+(define max-depth 1)
+(minimax max-depth board player-1)
 
 ;(drop-chip board 1 'X)
 ;(drop-chip board 1 'O)
