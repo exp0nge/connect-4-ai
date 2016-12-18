@@ -230,14 +230,14 @@
 
     (false-exists? (map (lambda (col) (valid-move? board col)) (make-interval 0 num-cols)))))
 
+
 (define minimax
-  ; maxPlayer := #t
   (lambda (depth board player)
+   ; returns: int (column of best move)
     (cond
-      ((= depth 0) (score player))
-      ((complete-board? board) (score player))
-      ((is-max? player) (let ((max-score (- INF))
-                              (best-move '()))
+      ((= depth 0) (score board player))
+      ((complete-board? board) (score board player))
+      ((is-max? player) (let ((max-score (- INF)))
                           (map
                            (lambda (candidate-board-move)
                              (let ((candidate-score (minimax (- depth 1)
@@ -248,9 +248,8 @@
                                   (set! max-score candidate-score)
                                   (set! best-move (candidate-move candidate-board-move))))))
                            (all-possible-moves board player))
-                          best-move))
-      (else (let ((min-score INF)
-                  (best-move '()))
+                         max-score))
+      (else (let ((min-score INF))
               (map
                (lambda (candidate-board-move)
                  (let ((candidate-score (minimax (- depth 1)
@@ -261,7 +260,7 @@
                       (set! min-score candidate-score)
                       (set! best-move (candidate-move candidate-board-move))))))
                (all-possible-moves board player))
-              best-move)))))
+              min-score)))))
     
 
 ;; Check Row Win
