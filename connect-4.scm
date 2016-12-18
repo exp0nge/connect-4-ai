@@ -252,7 +252,7 @@
                            (lambda (candidate-board-move)
                              (let ((candidate-score (minimax (- depth 1)
                                                              (candidate-board candidate-board-move)
-                                                             player)))
+                                                             (opponent player))))
                                (display "is-max?\n")
                                (display candidate-score)
                                (newline)
@@ -265,16 +265,18 @@
                                   (display "bestmove:\n")
                                   (display best-move)
                                   (newline)))))
-                           (all-possible-moves board (opponent player)))
+                           (all-possible-moves board player))
                           max-score))
       (else (let ((min-score INF))
               (map
                (lambda (candidate-board-move)
                  (let ((candidate-score (minimax (- depth 1)
                                                  (candidate-board candidate-board-move)
-                                                  player)))
+                                                  (opponent player))))
                    (display "is-min?\n")
                    (display candidate-score)
+                   (newline)
+                   (display (print-board (candidate-board candidate-board-move)))
                    (newline)
                    (cond
                      ((< candidate-score min-score)
@@ -282,7 +284,7 @@
                       (set! best-move (candidate-move candidate-board-move))
                       (display "bestmove:")
                       (display best-move)))))
-               (all-possible-moves board (opponent player)))
+               (all-possible-moves board player))
               min-score)))))
     
 
