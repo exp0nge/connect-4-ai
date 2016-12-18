@@ -26,7 +26,7 @@
   (init-vector-rows (make-vector num-rows) 0))
 
 (define valid-move?
-  (lambda (board col player)
+  (lambda (board col)
     (define check-lowest-row
       (lambda (row)
         (cond
@@ -180,14 +180,13 @@
 
 (define is-max?
   (lambda (player)
-    (= player player-2)))
+    (= player ai-player)))
 
 (define opponent
   (lambda (player)
     (cond
       ((equal? player player-1) player-2)
       (else player-1))))
-
 
 (define candidate-board car)
 (define candidate-move cadr)
@@ -212,21 +211,31 @@
       (lambda (col)
         (cond
           ((= col num-cols) '())
-          ((valid-move? board col player) (cons col (col-iter (+ col 1))))
+          ((valid-move? board col) (cons col (col-iter (+ col 1))))
           (else (col-iter (+ col 1))))))
     (map (lambda (col)
            (let ((board-copy (clone-board board)))
              (drop-chip board-copy col player)
              (list board-copy col))) ; builds (board col)
            (col-iter 0))))
-    
+
+(define complete-board?
+  (lambda (board)
+    (define false-exists?
+      (lambda (lst)
+        (cond
+          ((null? lst) #f)
+          ((car lst) (false-exists? (cdr lst)))
+          (else #t))))
+
+    (false-exists? (map (lambda (col) (valid-move? board col)) (make-interval 0 num-cols)))))
 
 (define minimax
   ; maxPlayer := #t
   (lambda (depth board player)
     (cond
       ((= depth 0) (score player))
-      ((complete-board board) (score player))
+      ((complete-board? board) (score player))
       ((is-max? player) (let ((max-score (- INF))
                               (best-move '()))
                           (map
