@@ -292,7 +292,6 @@
                                                      (display (opponent player-turn))
                                                      (newline))
             (else 
-          
              (print-board board)
              (newline)
              (cond
@@ -321,8 +320,8 @@
                                          (loop player-turn))
                     ((not (valid-move? board col)) (display "NOT A VALID MOVE\n")
                                                    (loop player-turn))
-                    (else (drop-chip board col player-turn)
-                          (loop (opponent player-turn)))))))))))
+                    (else (drop-chip board col player-turn))))
+                (loop (opponent player-turn))))))))
       (loop player-1)))
 
 (define coin-flip (random 2))
