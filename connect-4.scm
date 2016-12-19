@@ -1,5 +1,6 @@
 (#%require (only racket/base random))
 (#%require racket/vector)
+(#%require racket/trace)
 
 (define player-1 'X)
 
@@ -246,8 +247,8 @@
   (lambda (depth board player)
     ; returns: int (column of best move)
     (cond
-      ((= depth 0) (if (is-max? player) 1000 -1000))
-      ((complete-board? board) (score board player))
+      ((= depth 0) (score board ai-player));(print-board board) (newline) (display (score board player)) (newline) (score board player))
+      ((complete-board? board) 0)
       ((is-max? player) (let ((max-score (- INF)))
                           (map
                            (lambda (candidate-board-move)
@@ -325,6 +326,32 @@
           (diagonal-count (count-continuous-diagonal board player n)))
       (+ column-count row-count diagonal-count))))
 
+;; Print all possible boards of depth 1
+(define print-all
+  (lambda (board player)
+    (print-board (caar (all-possible-moves board player-1)))
+    (print-board (caadr (all-possible-moves board player-1)))
+    (print-board (caaddr (all-possible-moves board player-1)))
+    (print-board (caaddr (cdr (all-possible-moves board player-1))))
+    (print-board (caaddr (cddr (all-possible-moves board player-1))))
+    (print-board (caaddr (cdddr (all-possible-moves board player-1))))
+    (print-board (caaddr (cddddr (all-possible-moves board player-1))))))
+
+;; Minimax at 1 depth (base case)
+(define minimax-1
+  (lambda (board player)
+    (cond
+      ((complete-board? board) (score board player))
+      (else (let ((max-score (- INF)))
+              (map
+               (lambda (candidate-board-move)
+                 (let ((candidate-score (score (car candidate-board-move) player)))
+                   (cond
+                     ((> candidate-score max-score)
+                      (set! max-score candidate-score)
+                      (set! best-move (candidate-move candidate-board-move))))))
+               (all-possible-moves board player))
+              max-score)))))
 
 
 ;; Check Row Win
@@ -345,11 +372,10 @@
 ;(win? board 'X)
 ;(win? board 'O)
 
-<<<<<<< HEAD
 (define game-loop
   (lambda (coin-flip)
     (define board init-board-matrix)
-    (define max-depth 5)
+    (define max-depth 4)
       (display "AI Player: ")
       (display ai-player)
       (newline)
@@ -399,25 +425,7 @@
 (define coin-flip (random 2))
 (define ai-player (if (= coin-flip 0) player-1 player-2))
 (game-loop coin-flip)
-      
-    
-=======
-(define board init-board-matrix)
 
+;; Make AI Move based on minimax
+;(minimax max-depth board player-1) (drop-chip board best-move ai-player) (print-board board)
 
-(display "SIMULATING MINIMAX\n")
-(print-board board)
-(define ai-player player-1)
-(define max-depth 5)
-;(minimax max-depth board player-1)
-
-;(drop-chip board 1 'X)
-;(drop-chip board 1 'O)
-;(drop-chip board 1 'O)
-;(drop-chip board 1 'O)
-;(drop-chip board 1 'X)
-;(drop-chip board 1 'X)
-;(print-board board)
-;(count-max-continuous-player board (get-col board 1) 'X)
-;(count-max-continuous-player board (get-col board 1) 'O)
->>>>>>> e45d3177c0d9f43b89bbbe3150618c40226328cb
