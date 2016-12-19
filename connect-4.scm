@@ -223,56 +223,71 @@
 
 (define complete-board?
   (lambda (board)
-    (define false-exists?
-      (lambda (lst)
+    (define iter
+      (lambda (row col)
         (cond
-          ((null? lst) #f)
-          ((car lst) (false-exists? (cdr lst)))
-          (else #t))))
-
-    (false-exists? (map (lambda (col) (valid-move? board col)) (make-interval 0 num-cols)))))
+          ((= row num-rows) #t)
+          ((= col num-cols) (iter (+ row 1) 0))
+          (else (cond
+                  ((null? (get-slot board row col)) #f)
+                  (else (iter row (+ col 1))))))))
+    (iter 0 0)))
 
 
 (define score
   (lambda (board player)
-    (cond
-      ((win-n? board player 4) 10000)
-      ((win-n? board player 3) 1000)
-      ((win-n? board player 2) 300)
-      (else 0))))
+    (- (total-count-continuous-n board player 4) (total-count-continuous-n board (opponent player) 4))))
 
 (define best-move '())
+(define max-score (- INF))
+(define min-score INF)
+
+(define find-available-col
+  (lambda (board col)
+    (cond
+      ((= col num-cols) '())
+      ((valid-move? board col) col)
+      (else (find-available-col board (+ col 1))))))
 
 (define minimax
   (lambda (depth board player)
     ; returns: int (column of best move)
     (cond
-      ((= depth 0) (score board ai-player));(print-board board) (newline) (display (score board player)) (newline) (score board player))
+      ((win-n? board player 4) (if (is-max? player) (+ 1000 depth) (- (- 1000) depth)))
+      ((= depth 0) (if (is-max? player) (+ (score board player) depth)
+                       (- (- (score board player)) depth)))
       ((complete-board? board) 0)
-      ((is-max? player) (let ((max-score (- INF)))
-                          (map
-                           (lambda (candidate-board-move)
-                             (let ((candidate-score (minimax (- depth 1)
-                                                             (candidate-board candidate-board-move)
-                                                             (opponent player))))
-                               (cond
-                                 ((> candidate-score max-score)
-                                  (set! max-score candidate-score)
-                                  (set! best-move (candidate-move candidate-board-move))))))
-                           (all-possible-moves board player))
-                          max-score))
-      (else (let ((min-score INF))
-              (map
-               (lambda (candidate-board-move)
-                 (let ((candidate-score (minimax (- depth 1)
-                                                 (candidate-board candidate-board-move)
-                                                  (opponent player))))
-                   (cond
-                     ((< candidate-score min-score)
-                      (set! min-score candidate-score)
-                      (set! best-move (candidate-move candidate-board-move))))))
-               (all-possible-moves board player))
-              min-score)))))
+      (else
+
+       (set! best-move (find-available-col board 0))
+    
+       (cond
+         ((is-max? player)
+          (map
+           (lambda (candidate-board-move)
+             (let ((candidate-score (minimax (- depth 1)
+                                             (candidate-board candidate-board-move)
+                                             (opponent player))))
+               (cond
+                 ((and (> candidate-score max-score)
+                       (valid-move? (candidate-board candidate-board-move) (candidate-move candidate-board-move)))
+                  (set! max-score candidate-score)
+                  (set! best-move (candidate-move candidate-board-move))))))
+           (all-possible-moves board player))
+          max-score)
+         (else 
+          (map
+           (lambda (candidate-board-move)
+             (let ((candidate-score (minimax (- depth 1)
+                                             (candidate-board candidate-board-move)
+                                             (opponent player))))
+               (cond
+                 ((and (< candidate-score min-score)
+                       (valid-move? (candidate-board candidate-board-move) (candidate-move candidate-board-move)))
+                  (set! min-score candidate-score)
+                  (set! best-move (candidate-move candidate-board-move))))))
+           (all-possible-moves board player))
+          min-score))))))
 
 (define count-continuous
   (lambda (board vec player-to-check n)
@@ -375,7 +390,7 @@
 (define game-loop
   (lambda (coin-flip)
     (define board init-board-matrix)
-    (define max-depth 4)
+    (define max-depth 3)
       (display "AI Player: ")
       (display ai-player)
       (newline)
@@ -385,9 +400,13 @@
           (cond
             ((win-n? board player-turn 4) (display "WINNER: ")
                                           (display player-turn)
+                                          (newline)
+                                          (print-board board)
                                           (newline))
             ((win-n? board (opponent player-turn) 4) (display "WINNER: ")
                                                      (display (opponent player-turn))
+                                                     (newline)
+                                                     (print-board board)
                                                      (newline))
             (else 
              (print-board board)
