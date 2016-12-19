@@ -236,7 +236,12 @@
 
 (define score
   (lambda (board player)
-    (+ (- (total-count-continuous-n board player 4) (total-count-continuous-n board (opponent player) 4)) (random 5))))
+    (cond
+      ((is-max? player) (+ (* (total-count-continuous-n board player 4) 100000)
+                           (* (total-count-continuous-n board player 3) 100)
+                           (total-count-continuous-n board player 2)))
+      ((> (total-count-continuous-n board player 4) 0) (- 100000))
+      (else  0)))) ; we know its min
 
 (define best-move '())
 (define max-score (- INF))
@@ -253,8 +258,8 @@
   (lambda (depth board player)
     ; returns: int (column of best move)
     (cond
-      ((win-n? board player 4) (if (is-max? player) (+ 1000 depth) (- (- 1000) depth)))
-      ((= depth 0) (score board player))
+      ((win-n? board player 4) (if (is-max? player) (+ (score board player) depth) (- (- 100000) depth)))
+      ((= depth 0) (score board ai-player))
       ((complete-board? board) 0)
       (else
 
@@ -282,10 +287,11 @@
                                              (opponent player))))
                (cond
                  ((< candidate-score min-score)
-                  (set! min-score candidate-score)
-                  (set! best-move (candidate-move candidate-board-move))))))
+                  (set! min-score candidate-score)))))
+                  ;(set! best-move (candidate-move candidate-board-move))))))
            (all-possible-moves board player))
           min-score))))))
+                             
 
 (define count-continuous
   (lambda (board vec player-to-check n)
@@ -442,7 +448,14 @@
 (define coin-flip (random 2))
 (define ai-player (if (= coin-flip 0) player-1 player-2))
 (game-loop coin-flip)
-
+(define board init-board-matrix)
+(define ai-player 'x)
 ;; Make AI Move based on minimax
 ;(minimax max-depth board player-1) (drop-chip board best-move ai-player) (print-board board)
 
+(drop-chip board 3 player-1)
+;(drop-chip board 2 player-1)
+;(drop-chip board 4 player-1)
+;(print-board board)
+
+(minimax 5 board ai-player)
