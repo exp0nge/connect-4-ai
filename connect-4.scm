@@ -236,7 +236,7 @@
 
 (define score
   (lambda (board player)
-    (- (total-count-continuous-n board player 4) (total-count-continuous-n board (opponent player) 4))))
+    (+ (- (total-count-continuous-n board player 4) (total-count-continuous-n board (opponent player) 4)) (random 5))))
 
 (define best-move '())
 (define max-score (- INF))
@@ -254,13 +254,13 @@
     ; returns: int (column of best move)
     (cond
       ((win-n? board player 4) (if (is-max? player) (+ 1000 depth) (- (- 1000) depth)))
-      ((= depth 0) (if (is-max? player) (+ (score board player) depth)
-                       (- (- (score board player)) depth)))
+      ((= depth 0) (score board player))
       ((complete-board? board) 0)
       (else
 
        (set! best-move (find-available-col board 0))
-    
+       (set! max-score (- INF))
+       (set! min-score INF)
        (cond
          ((is-max? player)
           (map
@@ -269,8 +269,7 @@
                                              (candidate-board candidate-board-move)
                                              (opponent player))))
                (cond
-                 ((and (> candidate-score max-score)
-                       (valid-move? (candidate-board candidate-board-move) (candidate-move candidate-board-move)))
+                 ((> candidate-score max-score)
                   (set! max-score candidate-score)
                   (set! best-move (candidate-move candidate-board-move))))))
            (all-possible-moves board player))
@@ -282,8 +281,7 @@
                                              (candidate-board candidate-board-move)
                                              (opponent player))))
                (cond
-                 ((and (< candidate-score min-score)
-                       (valid-move? (candidate-board candidate-board-move) (candidate-move candidate-board-move)))
+                 ((< candidate-score min-score)
                   (set! min-score candidate-score)
                   (set! best-move (candidate-move candidate-board-move))))))
            (all-possible-moves board player))
@@ -390,7 +388,7 @@
 (define game-loop
   (lambda (coin-flip)
     (define board init-board-matrix)
-    (define max-depth 3)
+    (define max-depth 5)
       (display "AI Player: ")
       (display ai-player)
       (newline)
