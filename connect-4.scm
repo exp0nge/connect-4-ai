@@ -273,39 +273,11 @@
               min-score)))))
     
 
-;; Check Row Win
-;(drop-chip board 0 'O)
-;(drop-chip board 1 'O)
-;(drop-chip board 2 'O)
-;(drop-chip board 3 'O)
-;(print-board board)
-;(win? board 'X)
-;(win? board 'O)
-
-;; Check Column Win
-;(drop-chip board 6 'X)
-;(drop-chip board 6 'X)
-;(drop-chip board 6 'X)
-;(drop-chip board 6 'X)
-;(print-board board)
-;(win? board 'X)
-;(win? board 'O)
-
 (define board init-board-matrix)
-
 
 (display "SIMULATING MINIMAX\n")
 (print-board board)
 (define ai-player player-1)
 (define max-depth 5)
-(minimax max-depth board player-1)
+;(minimax max-depth board ai-player)
 
-;(drop-chip board 1 'X)
-;(drop-chip board 1 'O)
-;(drop-chip board 1 'O)
-;(drop-chip board 1 'O)
-;(drop-chip board 1 'X)
-;(drop-chip board 1 'X)
-;(print-board board)
-;(count-max-continuous-player board (get-col board 1) 'X)
-;(count-max-continuous-player board (get-col board 1) 'O)
