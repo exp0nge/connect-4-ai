@@ -301,7 +301,7 @@
                 (display "(")
                 (display ai-player)
                 (display ")")
-                (display " is thinking...\n")
+                (display " is thinking (please wait)...\n")
                 (minimax max-depth board ai-player)
                 (display "AI drops into column ")
                 (display best-move)
@@ -309,7 +309,11 @@
                 (drop-chip board best-move ai-player)
                 (loop (opponent player-turn)))
                (else
-                (display "Your turn\n")
+                (display "Your turn ")
+                (display "(")
+                (display player-turn)
+                (display ")")
+                (newline)
                 (display "Please enter column number (0-6)\n")
                 (let ((col (read)))
                   (cond
