@@ -1,3 +1,4 @@
+(#%require (only racket/base random))
 (#%require racket/vector)
 
 (define player-1 'X)
@@ -273,11 +274,55 @@
               min-score)))))
     
 
-(define board init-board-matrix)
+(define game-loop
+  (lambda (coin-flip)
+    (define board init-board-matrix)
+    (define max-depth 5)
+      (display "AI Player: ")
+      (display ai-player)
+      (newline)
+      (define loop
+        (lambda (player-turn)
 
-(display "SIMULATING MINIMAX\n")
-(print-board board)
-(define ai-player player-1)
-(define max-depth 5)
-;(minimax max-depth board ai-player)
+          (cond
+            ((win-n? board player-turn 4) (display "WINNER: ")
+                                          (display player-turn)
+                                          (newline))
+            ((win-n? board (opponent player-turn) 4) (display "WINNER: ")
+                                                     (display (opponent player-turn))
+                                                     (newline))
+            (else 
+          
+             (print-board board)
+             (newline)
+             (cond
+               ((equal? player-turn ai-player)
+                (display "AI ")
+                (display "(")
+                (display ai-player)
+                (display ")")
+                (display " is thinking...\n")
+                (minimax max-depth board ai-player)
+                (display "AI drops into column ")
+                (display best-move)
+                (newline)
+                (drop-chip board best-move ai-player)
+                (loop (opponent player-turn)))
+               (else
+                (display "Your turn\n")
+                (display "Please enter column number (0-6)\n")
+                (let ((col (read)))
+                  (cond
+                    ((not (number? col)) (display "INVALID INPUT. REQUIRED: 0 - 6\n")
+                                         (loop player-turn))
+                    ((not (valid-move? board col)) (display "NOT A VALID MOVE\n")
+                                                   (loop player-turn))
+                    (else (drop-chip board col player-turn)
+                          (loop (opponent player-turn)))))))))))
+      (loop player-1)))
 
+(define coin-flip (random 2))
+(define ai-player (if (= coin-flip 0) player-1 player-2))
+(game-loop coin-flip)
+      
+    
