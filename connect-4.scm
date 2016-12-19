@@ -234,7 +234,7 @@
 (define score
   (lambda (board player)
     (cond
-      ((win-n? board player 4) 2000)
+      ((win-n? board player 4) 10000)
       ((win-n? board player 3) 1000)
       ((win-n? board player 2) 300)
       (else 0))))
@@ -245,7 +245,7 @@
   (lambda (depth board player)
     ; returns: int (column of best move)
     (cond
-      ((= depth 0) (- (score board player) (score board (opponent player))))
+      ((= depth 0) (if (is-max? player) 1000 -1000))
       ((complete-board? board) (score board player))
       ((is-max? player) (let ((max-score (- INF)))
                           (map
@@ -271,7 +271,60 @@
                       (set! best-move (candidate-move candidate-board-move))))))
                (all-possible-moves board player))
               min-score)))))
-    
+
+(define count-continuous
+  (lambda (board vec player-to-check n)
+    (let ((n-count 0)
+          (counter 0))
+      (vector-map
+       (lambda (player) (if (equal? player player-to-check) ; player symbol are equal
+                            (cond
+                              ((= (+ counter 1) n)
+                               (set! counter 0)
+                               (set! n-count (+ n-count 1)))
+                              (else (set! counter (+ counter 1))))
+                            (set! counter 0)))
+       vec)
+      n-count)))
+
+(define count-continuous-col
+  (lambda (board player n)
+    (define counter
+      (lambda (count total)
+        (cond ((< count 0) total)
+              (else (let ((col-count (count-continuous board (get-col board count) player n)))
+                      (counter (- count 1) (+ total col-count)))))))
+    (counter (- num-cols 1) 0)))
+
+(define count-continuous-row
+  (lambda (board player n)
+    (define counter
+      (lambda (count total)
+        (cond ((< count 0) total)
+              (else (let ((row-count (count-continuous board (get-row board count) player n)))
+                      (counter (- count 1) (+ total row-count)))))))
+    (counter (- num-rows 1) 0)))
+
+(define count-continuous-diagonal
+  (lambda (board player n)
+    (let ((right-to-left (vector-ref (get-diagonal board) 0))
+          (left-to-right (vector-ref (get-diagonal board) 1)))
+      (define counter
+        (lambda (count total)
+          (cond ((< count 0) total)
+                (else (let ((right-to-left-count (count-continuous board (vector-ref right-to-left count) player n))
+                            (left-to-right-count (count-continuous board (vector-ref left-to-right count) player n)))
+                        (counter (- count 1) (+ total right-to-left-count left-to-right-count)))))))
+      (counter (- (vector-length left-to-right) 1) 0))))
+
+(define total-count-continuous-n
+  (lambda (board player n)
+    (let ((column-count (count-continuous-col board player n))
+          (row-count (count-continuous-row board player n))
+          (diagonal-count (count-continuous-diagonal board player n)))
+      (+ column-count row-count diagonal-count))))
+
+
 
 ;; Check Row Win
 ;(drop-chip board 0 'O)
@@ -298,7 +351,7 @@
 (print-board board)
 (define ai-player player-1)
 (define max-depth 5)
-(minimax max-depth board player-1)
+;(minimax max-depth board player-1)
 
 ;(drop-chip board 1 'X)
 ;(drop-chip board 1 'O)
