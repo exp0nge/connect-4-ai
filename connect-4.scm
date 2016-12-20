@@ -1,3 +1,4 @@
+;# R5RS (with redefinition allowed)
 (#%require (only racket/base random))
 (#%require racket/vector)
 (#%require racket/trace)
@@ -257,39 +258,39 @@
     ; returns: int (column of best move)
     (let ((best-move (find-available-col board 0)))
       (cond
-      ((win-n? board player 4) (if (is-max? player) (+ (score board player) depth) (- (- 100000) depth)))
-      ((= depth 0) (score board ai-player))
-      ((complete-board? board) 0)
-      (else
+        ((win-n? board player 4) (if (is-max? player) (+ (score board player) depth) (- (- 100000) depth)))
+        ((= depth 0) (score board ai-player))
+        ((complete-board? board) 0)
+        (else
 
-       (set! best-move (find-available-col board 0))
-       (cond
-         ((is-max? player)
-          (let ((max-score (- INF)))
-            (map
-             (lambda (candidate-board-move)
-               (let ((candidate-score (minimax (- depth 1)
-                                               (candidate-board candidate-board-move)
-                                               (opponent player))))
-                 (cond
-                   ((> candidate-score max-score)
-                    (set! max-score candidate-score)
-                    (set! best-move (candidate-move candidate-board-move))))))
-             (all-possible-moves board player))
-            (if (= depth max-depth) best-move max-score)))
-         (else 
-          (let ((min-score INF))
-            (map
-             (lambda (candidate-board-move)
-               (let ((candidate-score (minimax (- depth 1)
-                                               (candidate-board candidate-board-move)
-                                               (opponent player))))
-                 (cond
-                   ((< candidate-score min-score)
-                    (set! min-score candidate-score)
-                    (set! best-move (candidate-move candidate-board-move))))))
-       (all-possible-moves board player))
-      (if (= depth max-depth) best-move min-score)))))))))
+         (set! best-move (find-available-col board 0))
+         (cond
+           ((is-max? player)
+            (let ((max-score (- INF)))
+              (map
+               (lambda (candidate-board-move)
+                 (let ((candidate-score (minimax (- depth 1)
+                                                 (candidate-board candidate-board-move)
+                                                 (opponent player))))
+                   (cond
+                     ((> candidate-score max-score)
+                      (set! max-score candidate-score)
+                      (set! best-move (candidate-move candidate-board-move))))))
+               (all-possible-moves board player))
+              (if (= depth max-depth) best-move max-score)))
+           (else 
+            (let ((min-score INF))
+              (map
+               (lambda (candidate-board-move)
+                 (let ((candidate-score (minimax (- depth 1)
+                                                 (candidate-board candidate-board-move)
+                                                 (opponent player))))
+                   (cond
+                     ((< candidate-score min-score)
+                      (set! min-score candidate-score)
+                      (set! best-move (candidate-move candidate-board-move))))))
+               (all-possible-moves board player))
+              (if (= depth max-depth) best-move min-score)))))))))
                              
 
 (define count-continuous
@@ -371,90 +372,60 @@
                (all-possible-moves board player))
               max-score)))))
 
-
-;; Check Row Win
-;(drop-chip board 0 'O)
-;(drop-chip board 1 'O)
-;(drop-chip board 2 'O)
-;(drop-chip board 3 'O)
-;(print-board board)
-;(win? board 'X)
-;(win? board 'O)
-
-;; Check Column Win
-;(drop-chip board 6 'X)
-;(drop-chip board 6 'X)
-;(drop-chip board 6 'X)
-;(drop-chip board 6 'X)
-;(print-board board)
-;(win? board 'X)
-;(win? board 'O)
-
 (define game-loop
   (lambda (coin-flip)
     (define board init-board-matrix)
     (set! max-depth 5)
-      (display "AI Player: ")
-      (display ai-player)
-      (newline)
-      (define loop
-        (lambda (player-turn)
+    (display "AI Player: ")
+    (display ai-player)
+    (newline)
+    (define loop
+      (lambda (player-turn)
 
-          (cond
-            ((win-n? board player-turn 4) (display "GAME OVER: ")
-                                          (if (is-max? player-turn) "AI Wins!" "You win!")
-                                          (newline)
-                                          (print-board board)
-                                          (newline))
-            ((win-n? board (opponent player-turn) 4) (display "WINNER: ")
-                                                     (display (opponent player-turn))
-                                                     (newline)
-                                                     (print-board board)
-                                                     (newline))
-            (else 
-             (print-board board)
-             (newline)
-             (cond
-               ((equal? player-turn ai-player)
-                (display "AI ")
-                (display "(")
-                (display ai-player)
-                (display ")")
-                (display " is thinking (please wait)...\n")
-                (let ((best-move (minimax max-depth board ai-player)))
-                  (display "AI drops into column ")
-                  (display best-move)
-                  (newline)
-                  (drop-chip board best-move ai-player))
-                (loop (opponent player-turn)))
-               (else
-                (display "Your turn ")
-                (display "(")
-                (display player-turn)
-                (display ")")
+        (cond
+          ((win-n? board player-turn 4) (display "GAME OVER: ")
+                                        (if (is-max? player-turn) "AI Wins!" "You win!")
+                                        (newline)
+                                        (print-board board)
+                                        (newline))
+          ((win-n? board (opponent player-turn) 4) (display "WINNER: ")
+                                                   (display (opponent player-turn))
+                                                   (newline)
+                                                   (print-board board)
+                                                   (newline))
+          (else 
+           (print-board board)
+           (newline)
+           (cond
+             ((equal? player-turn ai-player)
+              (display "AI ")
+              (display "(")
+              (display ai-player)
+              (display ")")
+              (display " is thinking (please wait)...\n")
+              (let ((best-move (minimax max-depth board ai-player)))
+                (display "AI drops into column ")
+                (display best-move)
                 (newline)
-                (display "Please enter column number (0-6)\n")
-                (let ((col (read)))
-                  (cond
-                    ((not (number? col)) (display "INVALID INPUT. REQUIRED: 0 - 6\n")
-                                         (loop player-turn))
-                    ((not (valid-move? board col)) (display "NOT A VALID MOVE\n")
-                                                   (loop player-turn))
-                    (else (drop-chip board col player-turn))))
-                (loop (opponent player-turn))))))))
-      (loop player-1)))
+                (drop-chip board best-move ai-player))
+              (loop (opponent player-turn)))
+             (else
+              (display "Your turn ")
+              (display "(")
+              (display player-turn)
+              (display ")")
+              (newline)
+              (display "Please enter column number (0-6)\n")
+              (let ((col (read)))
+                (cond
+                  ((not (number? col)) (display "INVALID INPUT. REQUIRED: 0 - 6\n")
+                                       (loop player-turn))
+                  ((not (valid-move? board col)) (display "NOT A VALID MOVE\n")
+                                                 (loop player-turn))
+                  (else (drop-chip board col player-turn))))
+              (loop (opponent player-turn))))))))
+    (loop player-1)))
 
 (define coin-flip (random 2))
 (define ai-player (if (= coin-flip 0) player-1 player-2))
 (game-loop coin-flip)
-(define board init-board-matrix)
-(define ai-player 'x)
-;; Make AI Move based on minimax
-;(minimax max-depth board player-1) (drop-chip board best-move ai-player) (print-board board)
-
-(drop-chip board 3 player-1)
-;(drop-chip board 2 player-1)
-;(drop-chip board 4 player-1)
-;(print-board board)
-
-(minimax 5 board ai-player)
