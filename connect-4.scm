@@ -244,8 +244,6 @@
       (else  0)))) ; we know its min
 
 (define best-move '())
-(define max-score (- INF))
-(define min-score INF)
 
 (define find-available-col
   (lambda (board col)
@@ -264,33 +262,33 @@
       (else
 
        (set! best-move (find-available-col board 0))
-       (set! max-score (- INF))
-       (set! min-score INF)
        (cond
          ((is-max? player)
-          (map
-           (lambda (candidate-board-move)
-             (let ((candidate-score (minimax (- depth 1)
-                                             (candidate-board candidate-board-move)
-                                             (opponent player))))
-               (cond
-                 ((> candidate-score max-score)
-                  (set! max-score candidate-score)
-                  (set! best-move (candidate-move candidate-board-move))))))
-           (all-possible-moves board player))
-          max-score)
+          (let ((max-score (- INF)))
+            (map
+             (lambda (candidate-board-move)
+               (let ((candidate-score (minimax (- depth 1)
+                                               (candidate-board candidate-board-move)
+                                               (opponent player))))
+                 (cond
+                   ((> candidate-score max-score)
+                    (set! max-score candidate-score)
+                    (set! best-move (candidate-move candidate-board-move))))))
+             (all-possible-moves board player))
+            max-score))
          (else 
-          (map
-           (lambda (candidate-board-move)
-             (let ((candidate-score (minimax (- depth 1)
-                                             (candidate-board candidate-board-move)
-                                             (opponent player))))
-               (cond
-                 ((< candidate-score min-score)
-                  (set! min-score candidate-score)))))
-                  ;(set! best-move (candidate-move candidate-board-move))))))
-           (all-possible-moves board player))
-          min-score))))))
+          (let ((min-score INF))
+            (map
+             (lambda (candidate-board-move)
+               (let ((candidate-score (minimax (- depth 1)
+                                               (candidate-board candidate-board-move)
+                                               (opponent player))))
+                 (cond
+                   ((< candidate-score min-score)
+                    (set! min-score candidate-score)))))
+             ;(set! best-move (candidate-move candidate-board-move))))))
+             (all-possible-moves board player))
+            min-score)))))))
                              
 
 (define count-continuous
