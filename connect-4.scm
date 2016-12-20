@@ -401,8 +401,8 @@
         (lambda (player-turn)
 
           (cond
-            ((win-n? board player-turn 4) (display "WINNER: ")
-                                          (display player-turn)
+            ((win-n? board player-turn 4) (display "GAME OVER: ")
+                                          (if (is-max? player-turn) "AI Wins!" "You win!")
                                           (newline)
                                           (print-board board)
                                           (newline))
