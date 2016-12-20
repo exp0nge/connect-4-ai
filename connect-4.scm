@@ -243,7 +243,7 @@
       ((> (total-count-continuous-n board player 4) 0) (- 100000))
       (else  0)))) ; we know its min
 
-(define best-move '())
+(define max-depth 5)
 
 (define find-available-col
   (lambda (board col)
@@ -255,7 +255,8 @@
 (define minimax
   (lambda (depth board player)
     ; returns: int (column of best move)
-    (cond
+    (let ((best-move (find-available-col board 0)))
+      (cond
       ((win-n? board player 4) (if (is-max? player) (+ (score board player) depth) (- (- 100000) depth)))
       ((= depth 0) (score board ai-player))
       ((complete-board? board) 0)
@@ -275,7 +276,7 @@
                     (set! max-score candidate-score)
                     (set! best-move (candidate-move candidate-board-move))))))
              (all-possible-moves board player))
-            max-score))
+            (if (= depth max-depth) best-move max-score)))
          (else 
           (let ((min-score INF))
             (map
@@ -285,10 +286,10 @@
                                                (opponent player))))
                  (cond
                    ((< candidate-score min-score)
-                    (set! min-score candidate-score)))))
-             ;(set! best-move (candidate-move candidate-board-move))))))
-             (all-possible-moves board player))
-            min-score)))))))
+                    (set! min-score candidate-score)
+                    (set! best-move (candidate-move candidate-board-move))))))
+       (all-possible-moves board player))
+      (if (= depth max-depth) best-move min-score)))))))))
                              
 
 (define count-continuous
@@ -392,7 +393,7 @@
 (define game-loop
   (lambda (coin-flip)
     (define board init-board-matrix)
-    (define max-depth 5)
+    (set! max-depth 5)
       (display "AI Player: ")
       (display ai-player)
       (newline)
@@ -420,11 +421,11 @@
                 (display ai-player)
                 (display ")")
                 (display " is thinking (please wait)...\n")
-                (minimax max-depth board ai-player)
-                (display "AI drops into column ")
-                (display best-move)
-                (newline)
-                (drop-chip board best-move ai-player)
+                (let ((best-move (minimax max-depth board ai-player)))
+                  (display "AI drops into column ")
+                  (display best-move)
+                  (newline)
+                  (drop-chip board best-move ai-player))
                 (loop (opponent player-turn)))
                (else
                 (display "Your turn ")
